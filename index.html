@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=32&h=32&q=80" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LuxeVista 3D - Discover and book luxury hotels, resort cities, and gourmet restaurants with immersive interactive 3D WebGL walkthroughs and seating plans." />
+    <title>LuxeVista 3D | Immersive Luxury Hotel & Restaurant Booking</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Premium Custom Cursor -->
+    <div id="custom-cursor" class="custom-cursor"></div>
+    <div id="custom-cursor-dot" class="custom-cursor-dot"></div>
+
+    <!-- App Shell -->
+    <main id="app" class="app-container">
+      
+      <!-- Ambient Backdrop Glows -->
+      <div class="backdrop-glow glow-1"></div>
+      <div class="backdrop-glow glow-2"></div>
+      
+      <!-- Top Navigation Bar -->
+      <header class="navbar glass-panel">
+        <div class="navbar-logo" id="nav-logo-btn">
+          <span class="logo-accent">Luxe</span>Vista <span class="logo-version">3D</span>
+        </div>
+        
+        <nav class="navbar-center-tabs">
+          <button id="category-all" class="nav-tab active" data-category="all">
+            <span class="tab-icon">✨</span> Explore All
+          </button>
+          <button id="category-hotels" class="nav-tab" data-category="hotel">
+            <span class="tab-icon">🏨</span> Hotels
+          </button>
+          <button id="category-restaurants" class="nav-tab" data-category="restaurant">
+            <span class="tab-icon">🍽️</span> Dining
+          </button>
+        </nav>
+        
+        <div class="navbar-actions">
+          <div class="currency-badge">USD ($)</div>
+          <button class="profile-btn glass-btn" id="user-profile-btn" aria-label="User Profile">
+            <span class="user-avatar">👤</span>
+            <span class="user-name">Guest</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Layout Section -->
+      <section class="main-layout">
+        
+        <!-- Left Column: Search & Properties Listing Feed -->
+        <aside class="feed-column">
+          <!-- Search & Filter Card -->
+          <div class="search-card glass-panel">
+            <h1 class="main-title">Find Immersive Spaces</h1>
+            <p class="subtitle">Select destinations globally and tour rooms in interactive 3D</p>
+            
+            <div class="search-inputs">
+              <div class="input-group">
+                <label for="search-destination">Destination</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📍</span>
+                  <input type="text" id="search-destination" placeholder="Where would you like to go?" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Destination Pills -->
+            <div class="destination-filter-pills" id="city-pills-container">
+              <!-- Dynamically populated -->
+            </div>
+            
+            <!-- Price Range Filter -->
+            <div class="price-filter">
+              <div class="price-header">
+                <span>Max Budget (per night/guest)</span>
+                <span id="price-val-display">$1,000</span>
+              </div>
+              <input type="range" id="price-slider" min="100" max="1000" step="50" value="1000" aria-label="Maximum Price Slider" />
+            </div>
+          </div>
+
+          <!-- Listings Feed Container -->
+          <div class="feed-listings" id="listings-feed-container">
+            <!-- Dynamically populated cards -->
+          </div>
+        </aside>
+
+        <!-- Right Column: Interactive 3D Canvas Viewport -->
+        <article class="viewport-column glass-panel">
+          
+          <!-- WebGL Canvas Elements -->
+          <div class="canvas-wrapper">
+            <!-- Globe Canvas Container -->
+            <div id="globe-view-container" class="canvas-container active">
+              <div class="three-d-loader" id="globe-loader">
+                <div class="spinner"></div>
+                <p>Generating holographic Earth...</p>
+              </div>
+            </div>
+            
+            <!-- Room / Seating Canvas Container -->
+            <div id="room-view-container" class="canvas-container">
+              <div class="three-d-loader" id="room-loader" style="display: none;">
+                <div class="spinner"></div>
+                <p>Constructing 3D scene...</p>
+              </div>
+              <canvas id="room-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- 3D UI Overlays (Controls/Stats) -->
+          <div class="viewport-overlay top-left">
+            <div class="view-badge" id="view-mode-badge">
+              <span class="badge-dot pulse"></span>
+              <span id="view-mode-text">GLOBAL EXPLORER (3D)</span>
+            </div>
+          </div>
+
+          <div class="viewport-overlay top-right">
+            <button class="glass-btn icon-only-btn" id="toggle-rotation-btn" title="Toggle Auto Rotation" aria-label="Toggle Auto Rotation">
+              🔄
+            </button>
+            <button class="glass-btn icon-only-btn" id="reset-camera-btn" title="Reset Camera Angle" aria-label="Reset Camera Angle">
+              🎥
+            </button>
+          </div>
+
+          <!-- 3D Room Customizer Controls (Hidden by default, shown when viewing a specific property's 3D view) -->
+          <div class="viewport-overlay bottom-bar" id="room-controls-overlay" style="display: none;">
+            <div class="control-section">
+              <span class="control-label font-title">Ambient Lighting Mode:</span>
+              <div class="control-group">
+                <button class="control-btn active" id="lighting-sunset" data-light="sunset">🌇 Golden Sunset</button>
+                <button class="control-btn" id="lighting-midnight" data-light="midnight">🌌 Cozy Midnight</button>
+                <button class="control-btn" id="lighting-cyberpunk" data-light="cyberpunk">🌃 Cyber Neon</button>
+              </div>
+            </div>
+            
+            <div class="control-separator"></div>
+
+            <div class="control-section" id="interactive-selection-area">
+              <span class="control-label font-title" id="selection-label">Select Option:</span>
+              <div class="control-group" id="selection-buttons-container">
+                <!-- Dynamically populated (e.g. Bed types or Table numbers) -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Globe Explanatory Helper Hint -->
+          <div class="viewport-overlay bottom-hint" id="globe-hint-overlay">
+            <p>🖱️ Left Click + Drag to rotate globe. Scroll to zoom. Click pins to view destinations.</p>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- Full Detail Slide-Out Drawer (Airbnb Style) -->
+      <div class="detail-drawer-backdrop" id="detail-drawer-backdrop"></div>
+      <aside class="detail-drawer glass-panel" id="detail-drawer" aria-hidden="true">
+        <button class="close-drawer-btn" id="close-drawer-btn" aria-label="Close details">✕</button>
+        
+        <div class="drawer-content" id="drawer-content-container">
+          <!-- Dynamic details injected here -->
+        </div>
+      </aside>
+
+      <!-- Booking Flow Ticket Modal -->
+      <div class="modal-backdrop" id="booking-modal-backdrop"></div>
+      <div class="booking-modal glass-panel" id="booking-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="close-modal-btn" id="close-modal-btn" aria-label="Close booking">✕</button>
+        
+        <div class="modal-body" id="booking-modal-content">
+          <!-- Dynamically populated ticket confirmation layout -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Main Module Entry Point -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
